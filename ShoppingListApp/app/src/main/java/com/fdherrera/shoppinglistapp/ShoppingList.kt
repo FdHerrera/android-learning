@@ -50,12 +50,34 @@ fun ShoppingListApp() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            items(shoppingItems) {
-                ShoppingListItem(
-                    it,
-                    onEditClick = {},
-                    onDeleteClick = {}
-                )
+            items(shoppingItems) { shoppingItem ->
+                if (shoppingItem.isEditing) {
+                    ShoppingItemEditor(
+                        item = shoppingItem,
+                        onEditComplete = { newName, newQty ->
+                            shoppingItems = shoppingItems.map { it.copy(isEditing = false) }
+                            shoppingItems
+                                .find { it.id == shoppingItem.id }
+                                ?.let {
+                                    it.name = newName
+                                    it.quantity = newQty
+                                }
+                        }
+                    )
+                } else {
+                    ShoppingListItem(
+                        item = shoppingItem,
+                        onEditClick = {
+                            shoppingItems = shoppingItems.map {
+                                it.copy(isEditing = it.id == shoppingItem.id)
+                            }
+                            shoppingItems.find { it.id == shoppingItem.id }
+                        },
+                        onDeleteClick = {
+                            shoppingItems = shoppingItems - shoppingItem
+                        }
+                    )
+                }
             }
         }
 

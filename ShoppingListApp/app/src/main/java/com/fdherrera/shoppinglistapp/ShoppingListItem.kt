@@ -2,6 +2,7 @@ package com.fdherrera.shoppinglistapp
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,8 @@ fun ShoppingListItem(
             .border(
                 border = BorderStroke(2.dp, Color(0XFF018786)),
                 shape = RoundedCornerShape(20)
-            )
+            ),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(item.name, modifier = Modifier.padding(8.dp))
         Text("Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
