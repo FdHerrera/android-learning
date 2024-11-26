@@ -1,0 +1,19 @@
+package com.fdherrera.recipeapp
+
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+
+private val retrofit = Retrofit.Builder()
+    .baseUrl("www.themealdb.com/api/json/v1/1/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+
+val categoryService: CategoryService = retrofit.create(CategoryService::class.java)
+
+interface CategoryService {
+
+    @GET("categories.php")
+    suspend fun getCategories(): CategoriesResponse
+
+}
