@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.fdherrera.recipeapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.fdherrera.recipeapp"
