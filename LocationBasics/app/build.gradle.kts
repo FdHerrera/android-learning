@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.fdherrera.locationbasics"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.fdherrera.locationbasics"
