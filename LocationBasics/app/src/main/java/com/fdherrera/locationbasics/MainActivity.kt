@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewModelScope
 import com.fdherrera.locationbasics.ui.theme.LocationBasicsTheme
 import com.fdherrera.locationbasics.utils.LocationUtils
 
@@ -53,7 +52,6 @@ fun LocationDisplay(
     viewModel: LocationViewModel,
     context: Context
 ) {
-
     val location = viewModel.location.value
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -95,7 +93,7 @@ fun LocationDisplay(
         if (location == null) {
             Text("Location not available")
         } else {
-            Text("Location: ${location.latitude} || ${location.longitude}")
+            Text("Location: ${location.address}")
         }
         Button(
             onClick = {

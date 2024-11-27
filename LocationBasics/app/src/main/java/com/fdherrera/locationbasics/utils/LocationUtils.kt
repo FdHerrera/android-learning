@@ -5,6 +5,7 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.os.Looper
 import androidx.core.content.ContextCompat.checkSelfPermission
 import com.fdherrera.locationbasics.LocationData
@@ -14,6 +15,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.model.LatLng
+import java.util.Locale
 
 class LocationUtils(private val context: Context) {
     private val _fusedLocationClient: FusedLocationProviderClient =
@@ -26,7 +29,8 @@ class LocationUtils(private val context: Context) {
                 locationResult.lastLocation?.let { lastLocation ->
                     val location = LocationData(
                         latitude = lastLocation.latitude,
-                        longitude = lastLocation.longitude
+                        longitude = lastLocation.longitude,
+                        address = reverseGeocodeLocation(lastLocation.latitude, lastLocation.longitude)
                     )
                     locationConsumer(location)
                 }
@@ -46,6 +50,21 @@ class LocationUtils(private val context: Context) {
     fun hasLocationPermission(): Boolean {
         return checkPermission(ACCESS_COARSE_LOCATION)
                 && checkPermission(ACCESS_FINE_LOCATION)
+    }
+
+    private fun reverseGeocodeLocation(latitude: Double, longitude: Double): String {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        val coordinates = LatLng(latitude, longitude)
+        val addresses = geocoder.getFromLocation(
+            coordinates.latitude,
+            coordinates.longitude,
+            1
+        )
+        return if (addresses?.isNotEmpty() == true) {
+            addresses[0].getAddressLine(0)
+        } else {
+            "Address not found"
+        }
     }
 
     private fun checkPermission(manifestPermission: String): Boolean {
