@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class CategoryViewModel : ViewModel() {
 
     private val _categoryState = mutableStateOf(CategoryState())
     val categoryState: State<CategoryState> = _categoryState
@@ -18,7 +18,7 @@ class MainViewModel : ViewModel() {
     private fun fetchCategories() {
         viewModelScope.launch {
             try {
-                val response = categoryService.getCategories()
+                val response = apiService.getCategories()
                 _categoryState.value = CategoryState(
                     loading = false,
                     categories = response.categories
