@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.viewModelScope
 import com.fdherrera.locationbasics.ui.theme.LocationBasicsTheme
 import com.fdherrera.locationbasics.utils.LocationUtils
 
@@ -28,9 +30,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewModel: LocationViewModel by viewModels()
             LocationBasicsTheme {
                 Surface {
-                    MyApp()
+                    MyApp(viewModel)
                 }
             }
         }
@@ -38,17 +41,20 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyApp() {
+fun MyApp(viewModel: LocationViewModel) {
     val context = LocalContext.current
     val locationUtils = LocationUtils(context)
-    LocationDisplay(locationUtils, context)
+    LocationDisplay(locationUtils, viewModel, context)
 }
 
 @Composable
 fun LocationDisplay(
     locationUtils: LocationUtils,
+    viewModel: LocationViewModel,
     context: Context
 ) {
+
+    val location = viewModel.location.value
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
         onResult = { permissions ->
@@ -56,7 +62,7 @@ fun LocationDisplay(
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true &&
                 permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
             ) {
-                //have permiossion
+                locationUtils.requestLocationUpdates { viewModel.updateLocation(it) }
             } else {
                 val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
                     context as MainActivity,
@@ -86,11 +92,15 @@ fun LocationDisplay(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Location not available")
+        if (location == null) {
+            Text("Location not available")
+        } else {
+            Text("Location: ${location.latitude} || ${location.longitude}")
+        }
         Button(
             onClick = {
                 if (locationUtils.hasLocationPermission()) {
-                    //permission granted
+                    locationUtils.requestLocationUpdates { viewModel.updateLocation(it) }
                 } else {
                     requestPermissionLauncher.launch(
                         arrayOf(
