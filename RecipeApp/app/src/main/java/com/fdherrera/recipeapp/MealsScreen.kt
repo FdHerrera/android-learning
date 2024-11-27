@@ -1,7 +1,6 @@
 package com.fdherrera.recipeapp
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +22,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MealsScreen(modifier: Modifier = Modifier, categoryName: String) {
+fun MealsScreen(
+    modifier: Modifier = Modifier,
+    categoryName: String,
+    onNavigateToCategories: () -> Unit
+) {
     val viewModel = viewModel<MealViewModel>()
     viewModel.fetchMeals(categoryName)
     val mealsViewState by viewModel.mealsState
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column {
+        Button(onClick = onNavigateToCategories) {
+            Text("Back to Categories")
+        }
         when {
-            mealsViewState.loading -> CircularProgressIndicator(modifier.align(Alignment.Center))
+            mealsViewState.loading -> CircularProgressIndicator(modifier.align(Alignment.CenterHorizontally))
             mealsViewState.error != null -> Text("Error occurred: ${mealsViewState.error}")
             else -> MealsScreen(mealsViewState.meals)
         }
