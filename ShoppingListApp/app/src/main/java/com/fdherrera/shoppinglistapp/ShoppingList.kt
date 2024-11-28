@@ -1,5 +1,10 @@
 package com.fdherrera.shoppinglistapp
 
+import android.Manifest
+import android.content.Context
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 
 data class ShoppingItem(
     val id: Int,
@@ -31,7 +37,10 @@ data class ShoppingItem(
 )
 
 @Composable
-fun ShoppingListApp() {
+fun ShoppingListApp(
+    locationUtils: LocationUtils,
+    context: Context
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center
@@ -47,7 +56,12 @@ fun ShoppingListApp() {
         }
         ShoppingItemsView(shoppingItems)
         if (showDialog.value) {
-            AddShoppingItemView(showDialog, shoppingItems)
+            AddShoppingItemView(
+                locationUtils = locationUtils,
+                context = context,
+                showDialog = showDialog,
+                shoppingItems = shoppingItems
+            )
         }
     }
 }
@@ -93,11 +107,23 @@ fun ShoppingItemsView(shoppingItems: MutableState<List<ShoppingItem>>) {
 
 @Composable
 fun AddShoppingItemView(
+    locationUtils: LocationUtils,
+    context: Context,
     showDialog: MutableState<Boolean>,
     shoppingItems: MutableState<List<ShoppingItem>>
 ) {
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("") }
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            onLocationPermissionsRequestResult(
+                permissions = permissions,
+                context = context,
+                onPermissionsGranted = {/*TODO*/ }
+            )
+        }
+    )
     AlertDialog(
         onDismissRequest = { showDialog.value = false },
         confirmButton = {
@@ -150,7 +176,55 @@ fun AddShoppingItemView(
                         .fillMaxWidth()
                         .padding(8.dp)
                 )
+                Button(onClick = {
+                    if (locationUtils.hasLocationPermission()) {
+                        locationUtils.requestLocationUpdates { /*todo: What to do with the location?*/ }
+                    } else {
+                        requestPermissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            )
+                        )
+                    }
+                }) {
+                    Text("Address")
+                }
             }
         }
     )
+}
+
+fun onLocationPermissionsRequestResult(
+    permissions: Map<String, Boolean>,
+    context: Context,
+    onPermissionsGranted: () -> Unit
+) {
+    if (
+        permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true &&
+        permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+    ) {
+        onPermissionsGranted.invoke()
+    } else {
+        val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
+            context as MainActivity,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) || ActivityCompat.shouldShowRequestPermissionRationale(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        if (rationaleRequired) {
+            Toast.makeText(
+                context,
+                "Location permission is required for this feature",
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            Toast.makeText(
+                context,
+                "Location permission is required. Please enable it.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 }
