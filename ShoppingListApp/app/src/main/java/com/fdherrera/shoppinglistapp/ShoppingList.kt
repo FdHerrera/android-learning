@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,8 @@ data class ShoppingItem(
     val id: Int,
     var name: String,
     var quantity: Int,
-    var isEditing: Boolean = false
+    var isEditing: Boolean = false,
+    var address: String = ""
 )
 
 @Composable
@@ -34,109 +36,121 @@ fun ShoppingListApp() {
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center
     ) {
-        var shoppingItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
-        var showDialog by remember { mutableStateOf(false) }
-        var itemName by remember { mutableStateOf("") }
-        var itemQuantity by remember { mutableStateOf("") }
+        val shoppingItems = remember { mutableStateOf(listOf<ShoppingItem>()) }
+        val showDialog = remember { mutableStateOf(false) }
 
         Button(
-            onClick = { showDialog = true },
+            onClick = { showDialog.value = true },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Add Item")
         }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            items(shoppingItems) { shoppingItem ->
-                if (shoppingItem.isEditing) {
-                    ShoppingItemEditor(
-                        item = shoppingItem,
-                        onEditComplete = { newName, newQty ->
-                            shoppingItems = shoppingItems.map { it.copy(isEditing = false) }
-                            shoppingItems
-                                .find { it.id == shoppingItem.id }
-                                ?.let {
-                                    it.name = newName
-                                    it.quantity = newQty
-                                }
-                        }
-                    )
-                } else {
-                    ShoppingListItem(
-                        item = shoppingItem,
-                        onEditClick = {
-                            shoppingItems = shoppingItems.map {
-                                it.copy(isEditing = it.id == shoppingItem.id)
-                            }
-                            shoppingItems.find { it.id == shoppingItem.id }
-                        },
-                        onDeleteClick = {
-                            shoppingItems = shoppingItems - shoppingItem
-                        }
-                    )
-                }
-            }
-        }
-
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                confirmButton = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Button(
-                            onClick = {
-                                if (itemName.isNotBlank()) {
-                                    val newItem = ShoppingItem(
-                                        id = shoppingItems.size + 1,
-                                        name = itemName,
-                                        quantity = itemQuantity.toIntOrNull() ?: 1
-                                    )
-                                    shoppingItems = shoppingItems + newItem
-                                    showDialog = false
-                                    itemName = ""
-                                    itemQuantity = ""
-                                }
-                            }
-                        ) {
-                            Text("Add")
-                        }
-                        Button(
-                            onClick = { showDialog = false }
-                        ) {
-                            Text("Cancel")
-                        }
-                    }
-                },
-                title = { Text("Add Shopping Item") },
-                text = {
-                    Column {
-                        OutlinedTextField(
-                            value = itemName,
-                            onValueChange = { itemName = it },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        )
-                        OutlinedTextField(
-                            value = itemQuantity,
-                            onValueChange = { itemQuantity = it },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        )
-                    }
-                }
-            )
+        ShoppingItemsView(shoppingItems)
+        if (showDialog.value) {
+            AddShoppingItemView(showDialog, shoppingItems)
         }
     }
+}
+
+@Composable
+fun ShoppingItemsView(shoppingItems: MutableState<List<ShoppingItem>>) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(shoppingItems.value) { shoppingItem ->
+            if (shoppingItem.isEditing) {
+                ShoppingItemEditor(
+                    item = shoppingItem,
+                    onEditComplete = { newName, newQty ->
+                        shoppingItems.value = shoppingItems.value.map { it.copy(isEditing = false) }
+                        shoppingItems.value
+                            .find { it.id == shoppingItem.id }
+                            ?.let {
+                                it.name = newName
+                                it.quantity = newQty
+                            }
+                    }
+                )
+            } else {
+                ShoppingListItem(
+                    item = shoppingItem,
+                    onEditClick = {
+                        shoppingItems.value = shoppingItems.value.map {
+                            it.copy(isEditing = it.id == shoppingItem.id)
+                        }
+                        shoppingItems.value.find { it.id == shoppingItem.id }
+                    },
+                    onDeleteClick = {
+                        shoppingItems.value -= shoppingItem
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AddShoppingItemView(
+    showDialog: MutableState<Boolean>,
+    shoppingItems: MutableState<List<ShoppingItem>>
+) {
+    var itemName by remember { mutableStateOf("") }
+    var itemQuantity by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = { showDialog.value = false },
+        confirmButton = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(
+                    onClick = {
+                        if (itemName.isNotBlank()) {
+                            val newItem = ShoppingItem(
+                                id = shoppingItems.value.size + 1,
+                                name = itemName,
+                                quantity = itemQuantity.toIntOrNull() ?: 1
+                            )
+                            shoppingItems.value += newItem
+                            showDialog.value = false
+                            itemName = ""
+                            itemQuantity = ""
+                        }
+                    }
+                ) {
+                    Text("Add")
+                }
+                Button(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        },
+        title = { Text("Add Shopping Item") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = itemName,
+                    onValueChange = { itemName = it },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+                OutlinedTextField(
+                    value = itemQuantity,
+                    onValueChange = { itemQuantity = it },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+            }
+        }
+    )
 }

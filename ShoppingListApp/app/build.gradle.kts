@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.fdherrera.shoppinglistapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.fdherrera.shoppinglistapp"

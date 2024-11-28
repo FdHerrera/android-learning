@@ -3,6 +3,7 @@ package com.fdherrera.shoppinglistapp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -34,8 +36,20 @@ fun ShoppingListItem(
             ),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(item.name, modifier = Modifier.padding(8.dp))
-        Text("Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp)
+        ) {
+            Row {
+                Text(item.name, modifier = Modifier.padding(8.dp))
+                Text("Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Icon(imageVector = Icons.Default.LocationOn, contentDescription = "Location of the item")
+                Text(text = item.address)
+            }
+        }
         Row(modifier = Modifier.padding(8.dp)) {
             IconButton(onClick = onEditClick) {
                 Icon(
