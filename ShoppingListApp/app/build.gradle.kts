@@ -10,6 +10,7 @@ plugins {
 android {
     namespace = "com.fdherrera.shoppinglistapp"
     compileSdk = 35
+    buildFeatures.buildConfig = true
 
     defaultConfig {
         applicationId = "com.fdherrera.shoppinglistapp"
@@ -24,6 +25,7 @@ android {
         properties.keys.forEach {
             manifestPlaceholders[it as String] = properties[it] as String
         }
+        buildConfigField(type = "String", name = "MAPS_API_KEY", value = "${properties["MAPS_API_KEY"]}")
     }
 
     buildTypes {
