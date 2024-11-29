@@ -2,6 +2,7 @@ package com.fdherrera.shoppinglistapp
 
 import android.Manifest
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,7 +40,9 @@ data class ShoppingItem(
 @Composable
 fun ShoppingListApp(
     locationUtils: LocationUtils,
-    context: Context
+    context: Context,
+    locationViewModel: LocationViewModel,
+    onSelectingLocation: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +63,9 @@ fun ShoppingListApp(
                 locationUtils = locationUtils,
                 context = context,
                 showDialog = showDialog,
-                shoppingItems = shoppingItems
+                shoppingItems = shoppingItems,
+                locationViewModel = locationViewModel,
+                onSelectingLocation = onSelectingLocation
             )
         }
     }
@@ -110,7 +115,9 @@ fun AddShoppingItemView(
     locationUtils: LocationUtils,
     context: Context,
     showDialog: MutableState<Boolean>,
-    shoppingItems: MutableState<List<ShoppingItem>>
+    shoppingItems: MutableState<List<ShoppingItem>>,
+    locationViewModel: LocationViewModel,
+    onSelectingLocation: () -> Unit
 ) {
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("") }
@@ -120,7 +127,13 @@ fun AddShoppingItemView(
             onLocationPermissionsRequestResult(
                 permissions = permissions,
                 context = context,
-                onPermissionsGranted = {/*TODO*/ }
+                onPermissionsGranted = {
+                    locationUtils.requestLocationUpdates {
+                        locationViewModel.updateLocation(
+                            it
+                        )
+                    }
+                }
             )
         }
     )
@@ -139,8 +152,11 @@ fun AddShoppingItemView(
                             val newItem = ShoppingItem(
                                 id = shoppingItems.value.size + 1,
                                 name = itemName,
-                                quantity = itemQuantity.toIntOrNull() ?: 1
+                                quantity = itemQuantity.toIntOrNull() ?: 1,
+                                address = locationViewModel.address.value.firstOrNull()?.formattedAddress
+                                    ?: "No Location"
                             )
+                            Log.d("view", locationViewModel.address.value.toString())
                             shoppingItems.value += newItem
                             showDialog.value = false
                             itemName = ""
@@ -178,7 +194,7 @@ fun AddShoppingItemView(
                 )
                 Button(onClick = {
                     if (locationUtils.hasLocationPermission()) {
-                        locationUtils.requestLocationUpdates { /*todo: What to do with the location?*/ }
+                        locationUtils.requestLocationUpdates { locationViewModel.updateLocation(it) }
                     } else {
                         requestPermissionLauncher.launch(
                             arrayOf(
@@ -187,6 +203,7 @@ fun AddShoppingItemView(
                             )
                         )
                     }
+                    onSelectingLocation.invoke()
                 }) {
                     Text("Address")
                 }

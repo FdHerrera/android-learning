@@ -14,7 +14,7 @@ class LocationViewModel : ViewModel() {
     private val _location = mutableStateOf<LocationData?>(null)
     val location: State<LocationData?> = _location
 
-    private val _address = mutableStateOf<List<GeocodingResult>>(null)
+    private val _address = mutableStateOf<List<GeocodingResult>>(listOf())
     val address: State<List<GeocodingResult>> = _address
 
     fun updateLocation(newLocationData: LocationData) {
@@ -25,7 +25,7 @@ class LocationViewModel : ViewModel() {
         try {
             viewModelScope.launch {
                 val result = _client.getAddressFromCoordinates(
-                    latLng = "",
+                    latLng = "${locationData.latitude},${locationData.longitude}",
                     apiKey = BuildConfig.MAPS_API_KEY
                 )
                 _address.value = result.results

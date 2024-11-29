@@ -1,6 +1,7 @@
 package com.fdherrera.shoppinglistapp
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,6 +44,7 @@ fun LocationSelectionScreen(
             Marker(state = MarkerState(position = userLocation.value))
         }
 
+        Log.d("locationScreen", "Selecting location: ${userLocation.value}")
         var newLocation: LocationData
         Button(onClick = {
             newLocation = LocationData(userLocation.value.latitude, userLocation.value.longitude)
